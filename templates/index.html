@@ -1,59 +1,175 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Mental Health Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-        }
-        #chatbox {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 400px;
-            overflow-y: scroll;
-            margin-bottom: 10px;
-        }
-        input {
-            width: 80%;
-            padding: 10px;
-        }
-        button {
-            padding: 10px;
-        }
-        p {
-            margin: 5px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saathi – Mental Health Companion</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>💬 Mental Health Companion</h1>
-    <div id="chatbox"></div>
-    <input id="message" type="text" placeholder="Type your message..." />
-    <button onclick="sendMessage()">Send</button>
 
-    <script>
-        async function sendMessage() {
-            const msg = document.getElementById("message").value;
-            if (!msg) return;
+<!-- Landing Page -->
+<div id="landing">
+    <h1>Saathi</h1>
+    <p>Click anywhere to start</p>
+</div>
 
-            const response = await fetch("/chat", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({message: msg})
-            });
+<!-- Main Chat Interface -->
+<div id="main-app">
+    <div class="chat-wrapper">
+        <header>
+            <div class="header-content">
+                <div class="avatar">🤖</div>
+                <div>
+                    <h1>Saathi</h1>
+                    <p>Your friendly mental health companion</p>
+                </div>
+            </div>
+        </header>
 
-            const data = await response.json();
+        <canvas id="moodChart" height="80"></canvas>
 
-            const chatbox = document.getElementById("chatbox");
-            chatbox.innerHTML += `<p><b>You:</b> ${msg}</p>`;
-            chatbox.innerHTML += `<p><b>Bot:</b> ${data.reply}</p>`;
-            chatbox.scrollTop = chatbox.scrollHeight;
+        <div id="chat-box" class="chat-box"></div>
+        <div id="typing" class="typing" style="display:none;">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
 
-            document.getElementById("message").value = "";
-        }
-    </script>
+        <div class="quick-replies">
+            <button onclick="sendQuick('I feel stressed')">😢 Stressed</button>
+            <button onclick="sendQuick('I am happy')">😊 Happy</button>
+            <button onclick="sendQuick('I feel anxious')">😟 Anxious</button>
+        </div>
+
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="How are you feeling today? 💛" autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+
+        <button id="download-btn">💾 Save Conversation</button>
+    </div>
+</div>
+
+<script>
+/* Landing page transition */
+document.getElementById('landing').addEventListener('click', () => {
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+});
+
+/* Chat functionality */
+let chatHistory = [];
+let moodHistory = [];
+
+const ctx = document.getElementById('moodChart').getContext('2d');
+const moodChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Mood',
+            data: [],
+            backgroundColor: 'rgba(100, 221, 168, 0.2)',
+            borderColor: 'rgba(100, 221, 168, 1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointStyle: 'emoji',
+            pointRadius: 12
+        }]
+    },
+    options: {
+        scales: { 
+            y: { 
+                min: -1, max: 1, ticks: { 
+                    stepSize: 1, 
+                    callback: v => v==-1?'😢':v==0?'😐':'😊' 
+                } 
+            } 
+        },
+        plugins: { legend: { display: false } }
+    }
+});
+
+const chatForm = document.getElementById("chat-form");
+const chatBox = document.getElementById("chat-box");
+const userInput = document.getElementById("user-input");
+const typingIndicator = document.getElementById("typing");
+const downloadBtn = document.getElementById("download-btn");
+
+function addMessage(sender, message, sentiment=null) {
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", sender);
+
+    if(sender==='user' && sentiment){
+        let emoji = sentiment==='POSITIVE' ? '😊' : sentiment==='NEGATIVE' ? '😢' : '😐';
+        messageDiv.innerHTML = `<span class="emoji">${emoji}</span> ${message}`;
+    } else if(sender==='saathi') {
+        messageDiv.innerHTML = `<span class="avatar">🤖</span> <strong>Saathi:</strong> ${message}`;
+    } else {
+        messageDiv.innerHTML = message;
+    }
+
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    chatHistory.push({sender, message});
+}
+
+function updateMoodChart(sentiment){
+    let value = sentiment==='POSITIVE'?1:sentiment==='NEGATIVE'?-1:0;
+    moodHistory.push(value);
+    moodChart.data.labels.push(moodHistory.length);
+    moodChart.data.datasets[0].data.push(value);
+    moodChart.update();
+}
+
+async function sendMessage(message){
+    addMessage("user", message);
+    typingIndicator.style.display = "flex";
+
+    try{
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({message})
+        });
+        const data = await res.json();
+        typingIndicator.style.display = "none";
+        addMessage("saathi", data.reply);
+
+        let sentiment = /great|good|happy|positive|love/i.test(data.reply)?'POSITIVE':
+                        /sad|stress|anxious|tough|lonely/i.test(data.reply)?'NEGATIVE':'NEUTRAL';
+        updateMoodChart(sentiment);
+
+    } catch(err){
+        typingIndicator.style.display = "none";
+        addMessage("saathi", "⚠️ Error: Cannot reach server.");
+    }
+}
+
+chatForm.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    let msg = userInput.value.trim();
+    if(msg) sendMessage(msg);
+    userInput.value = "";
+});
+
+function sendQuick(msg){
+    userInput.value = msg;
+    sendMessage(msg);
+}
+
+downloadBtn.addEventListener("click", ()=>{
+    let text = chatHistory.map(m=>`${m.sender.toUpperCase()}: ${m.message}`).join("\n");
+    const blob = new Blob([text], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "saathi_chat.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+
 </body>
 </html>
