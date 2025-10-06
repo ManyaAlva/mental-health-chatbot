@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mental Health Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+        #chatbox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+        }
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>💬 Mental Health Companion</h1>
+    <div id="chatbox"></div>
+    <input id="message" type="text" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        async function sendMessage() {
+            const msg = document.getElementById("message").value;
+            if (!msg) return;
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: msg})
+            });
+
+            const data = await response.json();
+
+            const chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<p><b>You:</b> ${msg}</p>`;
+            chatbox.innerHTML += `<p><b>Bot:</b> ${data.reply}</p>`;
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            document.getElementById("message").value = "";
+        }
+    </script>
+</body>
+</html>
