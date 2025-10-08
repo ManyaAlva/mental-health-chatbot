@@ -5,30 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Saathi – Mental Health Companion</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <!-- Landing Page -->
 <div id="landing">
-    <h1>Saathi</h1>
-    <p>Click anywhere to start</p>
+    <div class="landing-overlay">
+        <div class="landing-content">
+            <div class="avatar">🤖</div>
+            <h1>Meet Saathi</h1>
+            <p>Your personal mental health companion, always ready to listen and support you through life's challenges</p>
+            <button id="start-chat" class="start-btn">Start Chatting Now</button>
+        </div>
+    </div>
 </div>
 
 <!-- Main Chat Interface -->
-<div id="main-app">
+<div id="main-app" style="display:none;">
     <div class="chat-wrapper">
         <header>
             <div class="header-content">
                 <div class="avatar">🤖</div>
                 <div>
-                    <h1>Saathi</h1>
+                    <h1>Saathi ✨</h1>
                     <p>Your friendly mental health companion</p>
                 </div>
             </div>
         </header>
-
-        <canvas id="moodChart" height="80"></canvas>
 
         <div id="chat-box" class="chat-box"></div>
         <div id="typing" class="typing" style="display:none;">
@@ -51,83 +54,39 @@
 </div>
 
 <script>
-/* Landing page transition */
-document.getElementById('landing').addEventListener('click', () => {
+document.getElementById('start-chat').addEventListener('click', () => {
     document.getElementById('landing').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
 });
 
 /* Chat functionality */
 let chatHistory = [];
-let moodHistory = [];
-
-const ctx = document.getElementById('moodChart').getContext('2d');
-const moodChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Mood',
-            data: [],
-            backgroundColor: 'rgba(100, 221, 168, 0.2)',
-            borderColor: 'rgba(100, 221, 168, 1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointStyle: 'emoji',
-            pointRadius: 12
-        }]
-    },
-    options: {
-        scales: { 
-            y: { 
-                min: -1, max: 1, ticks: { 
-                    stepSize: 1, 
-                    callback: v => v==-1?'😢':v==0?'😐':'😊' 
-                } 
-            } 
-        },
-        plugins: { legend: { display: false } }
-    }
-});
-
-const chatForm = document.getElementById("chat-form");
 const chatBox = document.getElementById("chat-box");
+const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
 const typingIndicator = document.getElementById("typing");
 const downloadBtn = document.getElementById("download-btn");
 
-function addMessage(sender, message, sentiment=null) {
+function addMessage(sender, message){
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message", sender);
-
-    if(sender==='user' && sentiment){
-        let emoji = sentiment==='POSITIVE' ? '😊' : sentiment==='NEGATIVE' ? '😢' : '😐';
-        messageDiv.innerHTML = `<span class="emoji">${emoji}</span> ${message}`;
-    } else if(sender==='saathi') {
-        messageDiv.innerHTML = `<span class="avatar">🤖</span> <strong>Saathi:</strong> ${message}`;
+    if(sender==='user'){
+        messageDiv.innerHTML = `<span class="emoji">😊</span> ${message}`;
     } else {
+        // Insert structured HTML directly
         messageDiv.innerHTML = message;
     }
-
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
     chatHistory.push({sender, message});
 }
 
-function updateMoodChart(sentiment){
-    let value = sentiment==='POSITIVE'?1:sentiment==='NEGATIVE'?-1:0;
-    moodHistory.push(value);
-    moodChart.data.labels.push(moodHistory.length);
-    moodChart.data.datasets[0].data.push(value);
-    moodChart.update();
-}
 
 async function sendMessage(message){
     addMessage("user", message);
     typingIndicator.style.display = "flex";
 
-    try{
+    try {
         const res = await fetch("/chat", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
@@ -136,11 +95,6 @@ async function sendMessage(message){
         const data = await res.json();
         typingIndicator.style.display = "none";
         addMessage("saathi", data.reply);
-
-        let sentiment = /great|good|happy|positive|love/i.test(data.reply)?'POSITIVE':
-                        /sad|stress|anxious|tough|lonely/i.test(data.reply)?'NEGATIVE':'NEUTRAL';
-        updateMoodChart(sentiment);
-
     } catch(err){
         typingIndicator.style.display = "none";
         addMessage("saathi", "⚠️ Error: Cannot reach server.");
@@ -170,6 +124,5 @@ downloadBtn.addEventListener("click", ()=>{
     URL.revokeObjectURL(url);
 });
 </script>
-
 </body>
 </html>

@@ -50,5 +50,197 @@
   {
     "role": "assistant",
     "content": "It\u2019s wonderful that you\u2019re feeling happy Happiness is a meaningful and valuable emotion, and acknowledging it can help reinforce and extend positive feelings.\n\nRecognizing your happiness is itself a healthy practice, and research shows that **gratitude**\u2014noticing and appreciating the good in your life\u2014can make these positive emotions even stronger and more lasting[1][2][3]. Expressing gratitude activates parts of the brain linked to reward and pleasure, which helps boost mood and satisfaction[2][3]. When you focus on what\u2019s going well, you also build emotional resilience and cope better with challenges[3].\n\nIf you\u2019d like to nurture your happiness further, here are a few gentle tips:\n\n- **Pause and savor the moment.** Take a breath and really feel your happiness\u2014it helps your brain remember and repeat these feelings[1][3].\n- **Share your joy.** Letting someone else know you\u2019re happy can deepen your connection and spread positivity[2][3].\n- **Practice gratitude.** Even a simple thought of appreciation can amplify your positive emotions and support your mental well-being[1][2][3].\n\nYour happiness is important and worth celebrating. If you ever want to talk more or explore other ways to support you"
+  },
+  {
+    "role": "user",
+    "content": "I am happy\nI am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm so glad to hear that you're happy! Recognizing and expressing your happiness is a wonderful way to support your mental well-being and emotional health.\n\nHappiness is often amplified when you **practice gratitude**\u2014noticing and appreciating the good things in your life can increase positive emotions, improve mood, and help you feel even more content[1][2][3]. Gratitude has psychological benefits like reducing stress and anxiety, enhancing sleep, boosting self-esteem, and strengthening relationships[1][2][3][4].\n\nIf you want to nurture your happiness, consider these gentle suggestions:\n- **Pause and savor the feeling.** Take a few moments to notice what\u2019s making you happy right now.\n- **Express gratitude.** Think about something or someone you appreciate, and acknowledge it either silently or out loud.\n- **Share your joy.** Connecting with others when you're feeling good can help spread positivity and deepen relationships.\n\nYour happiness matters, and celebrating it is a meaningful act of self-care. If you ever want to talk more about what brings you joy or explore ways to sustain it, I'm here for you."
+  },
+  {
+    "role": "user",
+    "content": "I am happy\nI am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "It's wonderful that you're feeling happy Recognizing and embracing your happiness is a great way to nurture your mental well-being. Happiness can have a positive impact on many aspects of your life, including building resilience and improving life satisfaction[1]. \n\nIf you want to enhance your happiness further, consider these tips:\n- **Savor the moment.** Take a few deep breaths and really feel your happiness\u2014it can help your brain remember and repeat these feelings[4].\n- **Express gratitude.** Think about something or someone you appreciate, and acknowledge it either silently or out loud.\n- **Connect with others.** Sharing your joy with friends or family can deepen relationships and spread positivity[2].\n\nKeep celebrating your happiness and remember, it's okay to feel this way If you ever want to talk more about what brings you joy or explore ways to sustain it, I'm here for you."
+  },
+  {
+    "role": "user",
+    "content": "I am happy\nI am happy\nI am happy",
+    "sentiment": "POSITIVE",
+    "timestamp": "2025-10-07"
+  },
+  {
+    "role": "user",
+    "content": "I am happy",
+    "sentiment": "POSITIVE",
+    "timestamp": "2025-10-07"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <p><strong>\ud83d\ude0a Feedback:</strong> That's wonderful to hear! Keep your positive energy going.</p>\n        <p><strong>\ud83d\udcdd Tips:</strong> You are stronger than you think.; Every step forward is progress.; It\u2019s okay to rest; you don\u2019t have to do everything at once.</p>\n        <p><strong>\ud83d\udcca Last moods: \ud83d\ude10, \ud83d\ude10, \ud83d\ude10, \ud83d\ude0a, \ud83d\ude0a</strong></p>\n        <p><strong>\ud83d\udcaa You have checked in 1 day in a row!</strong></p>\n        <p>(Offline Mode) Perplexity API error: {\"error\":{\"message\":\"After the (optional) system message(s), user or tool message(s) should alternate with assistant message(s).\",\"type\":\"invalid_message\",\"code\":400}}</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel anxious"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel stressed"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p><strong>Bored</strong> (34.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p><strong>Bored</strong> (33.5% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p><strong>Bored</strong> (35.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel stressed"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p><strong>Bored</strong> (34.5% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p><strong>Bored</strong> (34.5% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>You are stronger than you think!</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (32.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (35.5% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel anxious"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (31.5% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel anxious"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (33.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel anxious"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>I hear you, that sounds tough. You are not alone.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (33.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>Take 5 deep breaths and stretch your arms.</li><li>Try a 2-minute meditation break.</li><li>Write down one thing you\u2019re grateful for.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>That\u2019s wonderful! Keep your positive energy flowing.</p>\n\n        <h3>\ud83e\udde0 Detected Emotion</h3>\n        <p>Bored (35.0% confidence)</p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li><li>It\u2019s okay to rest; you don\u2019t have to do everything at once.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        <p>(Offline Mode) Perplexity API unavailable.</p>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "I feel anxious"
+  },
+  {
+    "role": "assistant",
+    "content": "(Offline Mode) Perplexity API error: 400"
+  },
+  {
+    "role": "user",
+    "content": "I am happy"
+  },
+  {
+    "role": "assistant",
+    "content": "That's wonderful to hear! It's beautiful when we can recognize and embrace those moments of happiness. Your positive state of mind is something to celebrate and nurture.\n\n## **Sustaining Your Happiness**\n\nSince you're already feeling good, there are several ways you can maintain and even amplify this positive energy. **Exercise** is one of the most effective methods for boosting happiness, as it helps balance brain chemicals involved in stress and anxiety while increasing life satisfaction[1][2]. Even light movement like a short walk can enhance your positive emotions[2].\n\n**Practicing gratitude** can give your mood an additional boost by helping you notice more positive things in your life[1]. You might consider acknowledging three things you appreciate when you wake up or go to sleep[4].\n\n## **Building on Your Positive Momentum**\n\nYour happiness can become a foundation for even greater well-being. Consider **planning something enjoyable** - research shows that simply planning a trip or special time with friends can boost happiness for up to 8 weeks[2]. \n\n**Connecting with others** is another powerful way to sustain positive feelings. Feeling included in a community of friends contributes significantly"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>\ud83d\udc4b Hey there! It\u2019s great to see you! </p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        Hello I\u2019m glad you reached out. If you\u2019re feeling good today, that\u2019s wonderful. If you\u2019re looking to boost your mood or maintain your happiness, here are a few simple and effective tips:\n\n- **Laugh:** Laughter triggers a chemical reaction in your brain that elevates your mood, reduces stress, and can even boost your immunity[1].\n- **Connect with someone:** Talking with a cheerful friend\u2014even a brief chat\u2014can positively influence your happiness[1][6].\n- **Smile:** Smiling itself can help lift your mood due to changes in facial muscles[1][4].\n- **Get moving:** Physical activity like a short walk or some stretches can make a big difference in how you feel[1][2][7].\n- **Practice gratitude:** Spend a minute reflecting on things you\u2019re grateful for to start your day positively[2][3][4].\n- **Spend time in nature:** Even a few minutes outdoors or looking at nature photos can calm your mind and reduce stress[3][4].\n- **Listen to upbeat music:** Choose happy or energetic songs to quickly boost your mood[1][4].\n- **Take care of yourself:** Aim for enough sleep, healthy meals, and hydration</ul>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>\ud83d\udc4b Hey there! It\u2019s great to see you! </p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        Hello! It\u2019s great to connect with you. Every new conversation is a fresh start\u2014just like a new morning brings new opportunities and possibilities[1][2].\n\nIf you\u2019d like a little inspiration for today:\n- \u201cToday is a new beginning, make it count.\u201d[1]\n- \u201cThe morning is a fresh start for all of us.\u201d[1]\n- \u201cWhen you arise in the morning, think of what a privilege it is to be alive, to think, to enjoy, to love.\u201d[2]\n\nIf there\u2019s anything on your mind, I\u2019m here to listen and support you.</ul>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "good evening"
+  },
+  {
+    "role": "assistant",
+    "content": "\n    <div class=\"saathi-response\">\n        <h3>\ud83d\ude0a Feedback</h3>\n        <p>\ud83d\udc4b Hey there! It\u2019s great to see you! </p>\n\n        <h3>\ud83d\udcdd Tips</h3>\n        <ul>\n    <li>You are stronger than you think.</li><li>Every step forward is progress.</li></ul>\n        <h3>\u2728 Encouragement</h3>\n        Good evening! I hope your evening is peaceful, restful, and filled with warmth and positivity[2][3]. As the day transitions into night, allow yourself to unwind and let go of any worries[2].\n\nIf you\u2019d like to share how you\u2019re feeling or want a gentle boost:\n- Wishing you a tranquil and restful evening ahead. May your mind and body find the rest they deserve[2].\n- Remember, each sunset brings a chance to relax and reflect. You deserve calm and happiness tonight[3].\n- May your evening be as beautiful as you are, and may tomorrow bring new opportunities and joy[2].\n\nIf you need support, I\u2019m here to listen.</ul>\n    </div>\n    "
+  },
+  {
+    "role": "user",
+    "content": "good morning"
+  },
+  {
+    "role": "assistant",
+    "content": "\n        <div class=\"saathi-response\">\n            <h3>\u2728 Encouragement</h3>\n            <ul>\n<li>Good morning!</li>\n<li>I hope today brings you peace, energy, and gentle moments of happiness.</li>\n<li>Starting your morning with positive intentions can help set the tone for a good day.</li>\n<li>Here are a few affirmations you can use to begin your day with positivity:</li>\n<li>**I am worthy of love, happiness, and success**[1].</li>\n<li>**All is well in my world today**[2].</li>\n<li>**I am confident in myself and my abilities**[4].</li>\n<li>**I am grateful for this moment**[5].</li>\n<li>**Today is a new day, and I can live it how I choose**[2].</li>\n<li>**I am filled with gratitude and kindness for another wonderful day on this earth**[5].</li>\n<li>**I am ready to have an amazing day**[4].</li>\n<li>If you\u2019d like, take a deep breath, repeat one or two of these affirmations, and allow yourself to ease into the day at your own pace.</li>\n<li>If there\u2019s anything on your mind, I\u2019m here to listen and support you.</li>\n</ul>\n        </div>\n        "
   }
 ]
