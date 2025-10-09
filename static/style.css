@@ -10,55 +10,50 @@
     background-position: center;
     background-repeat: no-repeat;
 }
-
 .landing-overlay {
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background: rgba(255,255,255,0.85);
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
-
 .landing-content {
-    text-align: center;
-    max-width: 600px;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align:center;
+    max-width:600px;
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
-
-.landing-content .avatar { font-size: 4rem; margin-bottom: 15px; }
-.landing-content h1 { font-size: 3rem; margin-bottom: 15px; color: #1e3a8a; }
-.landing-content p { font-size: 1.2rem; margin-bottom: 30px; color: #1f2937; }
-
+.landing-content .avatar { font-size:4rem; margin-bottom:15px; }
+.landing-content h1 { font-size:3rem; margin-bottom:15px; color:#1e3a8a; }
+.landing-content p { font-size:1.2rem; margin-bottom:30px; color:#1f2937; }
 .start-btn {
-    padding: 15px 30px;
-    background-color: #2563eb;
-    color: white;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
+    padding:15px 30px;
+    background-color:#2563eb;
+    color:white;
+    font-size:1.1rem;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:all 0.3s;
 }
-.start-btn:hover { background-color: #1e40af; transform: scale(1.05); }
+.start-btn:hover { background-color:#1e40af; transform:scale(1.05); }
 
 /* Chat Wrapper */
 .chat-wrapper {
-    width: 700px;
-    margin: 30px auto;
+    width:700px;
+    margin:30px auto;
     background: url('https://cdni.iconscout.com/illustration/premium/thumb/mental-aptitude-3609151-3016777.png') center/cover no-repeat;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    font-size: 1.1rem;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+    display:flex;
+    flex-direction:column;
+    padding:20px;
+    font-size:1.1rem;
 }
-
 /* Header */
-header { margin-bottom: 15px; }
+header { margin-bottom:15px; }
 .header-content { display:flex; align-items:center; gap:15px; }
 header h1 { margin:0; color:#1e3a8a; font-size:2rem; }
 header p { margin:0; font-size:1rem; color:#555; }
@@ -67,15 +62,14 @@ header p { margin:0; font-size:1rem; color:#555; }
 .chat-box {
     flex:1;
     padding:15px;
-    background:#ebf2ff; /* light blue background */
+    background:#ebf2ff;
     border-radius:15px;
     overflow-y:auto;
     display:flex;
     flex-direction:column;
     gap:12px;
-    height: 400px;
+    height:400px;
 }
-
 /* Messages */
 .message { max-width:70%; padding:12px 18px; border-radius:20px; line-height:1.5; }
 .message.user { background:#2563eb; color:#fff; align-self:flex-end; border-bottom-right-radius:5px; }
@@ -90,8 +84,30 @@ header p { margin:0; font-size:1rem; color:#555; }
 #chat-form button:hover { background:#1e40af; }
 
 /* Quick replies */
-.quick-replies { display:flex; justify-content:flex-start; gap:10px; margin:15px 0; }
-.quick-replies button { padding:10px 15px; border:none; border-radius:15px; background:#2563eb; color:#fff; cursor:pointer; font-size:1rem; }
+.quick-replies { 
+    display:flex; 
+    flex-direction:column;          /* stack rows vertically */
+    gap:10px; 
+    margin:15px 0; 
+}
+.quick-row {
+    display:flex;
+    gap:10px;
+    justify-content:space-between;
+    flex-wrap:wrap;
+}
+.quick-replies button { 
+    padding:10px 12px; 
+    border:none; 
+    border-radius:15px; 
+    background:#2563eb; 
+    color:#fff; 
+    cursor:pointer; 
+    font-size:1rem; 
+    flex: 1 1 calc(20% - 12px);   /* five per row when space allows */
+    min-width:120px;             /* prevent buttons getting too small */
+    text-align:center;
+}
 .quick-replies button:hover { background:#1e40af; }
 
 /* Download button */
@@ -104,3 +120,38 @@ header p { margin:0; font-size:1rem; color:#555; }
 .dot:nth-child(2){animation-delay:0.2s;}
 .dot:nth-child(3){animation-delay:0.4s;}
 @keyframes bounce{0%,80%,100%{transform:scale(0);}40%{transform:scale(1);}}
+
+/* Thinking / Breathing indicator */
+.thinking-container { 
+    display:flex; 
+    align-items:center; 
+    gap:10px;
+    background: #d0e7ff;
+    color:#333;
+    padding:10px 14px;
+    border-radius:18px;
+    max-width:70%;
+}
+.thinking-inner { display:flex; align-items:center; gap:12px; }
+.breathing-circle {
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background: rgba(37,99,235,0.15);
+    border: 3px solid rgba(37,99,235,0.9);
+    box-shadow: 0 0 0 rgba(37,99,235,0.2);
+    animation: breathe 1.6s ease-in-out infinite;
+}
+@keyframes breathe {
+    0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(37,99,235,0.15); }
+    50% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(37,99,235,0.04); }
+    100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(37,99,235,0.15); }
+}
+.thinking-text {
+    font-size:0.95rem;
+    color:#1f2937;
+    white-space:nowrap;
+}
+
+/* ensure thinking indicator doesn't get cut off when chat-box scrolls */
+.chat-box .thinking-container { align-self:flex-start; }

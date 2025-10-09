@@ -13,39 +13,48 @@
     <div class="landing-overlay">
         <div class="landing-content">
             <div class="avatar">🤖</div>
-            <h1>Meet Saathi</h1>
-            <p>Your personal mental health companion, always ready to listen and support you through life's challenges</p>
-            <button id="start-chat" class="start-btn">Start Chatting Now</button>
+            <h1>Saathi</h1>
+            <p>Your personal mental health companion, always ready to listen and support you.</p>
+            <button class="start-btn" id="start-btn">Start Chatting Now</button>
         </div>
     </div>
 </div>
 
-<!-- Main Chat Interface -->
+<!-- Chat Interface -->
 <div id="main-app" style="display:none;">
     <div class="chat-wrapper">
         <header>
             <div class="header-content">
                 <div class="avatar">🤖</div>
                 <div>
-                    <h1>Saathi ✨</h1>
+                    <h1>Saathi</h1>
                     <p>Your friendly mental health companion</p>
                 </div>
             </div>
         </header>
 
         <div id="chat-box" class="chat-box"></div>
-        <div id="typing" class="typing" style="display:none;">
-            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-        </div>
 
-        <div class="quick-replies">
-            <button onclick="sendQuick('I feel stressed')">😢 Stressed</button>
-            <button onclick="sendQuick('I am happy')">😊 Happy</button>
-            <button onclick="sendQuick('I feel anxious')">😟 Anxious</button>
+        <!-- Quick replies hidden until name is entered -->
+        <div class="quick-replies" id="quick-replies" style="display:none;">
+            <div class="quick-row">
+                <button onclick="sendQuick('I feel stressed')">😢 Stressed</button>
+                <button onclick="sendQuick('I am happy')">😊 Happy</button>
+                <button onclick="sendQuick('I feel anxious')">😟 Anxious</button>
+                <button onclick="sendQuick('I feel calm')">😌 Calm</button>
+                <button onclick="sendQuick('I feel sad')">😔 Sad</button>
+            </div>
+            <div class="quick-row">
+                <button onclick="sendQuick('I feel angry')">😡 Angry</button>
+                <button onclick="sendQuick('I feel relaxed')">😴 Relaxed</button>
+                <button onclick="sendQuick('I feel focused')">🧠 Focused</button>
+                <button onclick="sendQuick('I feel lonely')">🤝 Lonely</button>
+                <button onclick="sendQuick('I feel excited')">🤩 Excited</button>
+            </div>
         </div>
 
         <form id="chat-form">
-            <input type="text" id="user-input" placeholder="How are you feeling today? 💛" autocomplete="off" required>
+            <input type="text" id="user-input" placeholder="Please enter your name to start..." autocomplete="off" required>
             <button type="submit">Send</button>
         </form>
 
@@ -54,58 +63,64 @@
 </div>
 
 <script>
-document.getElementById('start-chat').addEventListener('click', () => {
-    document.getElementById('landing').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
+document.getElementById("start-btn").addEventListener("click", () => {
+    document.getElementById("landing").style.display = "none";
+    document.getElementById("main-app").style.display = "block";
+    addMessage("saathi", "Hello! I’m Saathi, your mental health companion. May I know your name?");
 });
 
-/* Chat functionality */
 let chatHistory = [];
+let userName = null;
+
 const chatBox = document.getElementById("chat-box");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
-const typingIndicator = document.getElementById("typing");
+const quickReplies = document.getElementById("quick-replies");
 const downloadBtn = document.getElementById("download-btn");
 
-function addMessage(sender, message){
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message", sender);
-    if(sender==='user'){
-        messageDiv.innerHTML = `<span class="emoji">😊</span> ${message}`;
+let thinkingElem = null; // reference to current thinking indicator
+
+function addMessage(sender, message) {
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message", sender);
+    if(sender === "user"){
+        msgDiv.textContent = message;
     } else {
-        // Insert structured HTML directly
-        messageDiv.innerHTML = message;
+        msgDiv.innerHTML = `<span class="avatar">🤖</span> ${message}`;
     }
-    chatBox.appendChild(messageDiv);
+    chatBox.appendChild(msgDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
     chatHistory.push({sender, message});
 }
 
-
-async function sendMessage(message){
-    addMessage("user", message);
-    typingIndicator.style.display = "flex";
-
-    try {
-        const res = await fetch("/chat", {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({message})
-        });
-        const data = await res.json();
-        typingIndicator.style.display = "none";
-        addMessage("saathi", data.reply);
-    } catch(err){
-        typingIndicator.style.display = "none";
-        addMessage("saathi", "⚠️ Error: Cannot reach server.");
-    }
+function showThinking(text = "Your Saathi is thinking…") {
+    // avoid duplicate
+    if (thinkingElem) return;
+    thinkingElem = document.createElement("div");
+    thinkingElem.className = "message saathi thinking-container";
+    thinkingElem.innerHTML = `
+        <div class="thinking-inner">
+            <div class="breathing-circle" aria-hidden="true"></div>
+            <div class="thinking-text">${text}</div>
+        </div>
+    `;
+    chatBox.appendChild(thinkingElem);
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-chatForm.addEventListener("submit", (e)=>{
+function hideThinking() {
+    if (!thinkingElem) return;
+    thinkingElem.remove();
+    thinkingElem = null;
+}
+
+chatForm.addEventListener("submit", e => {
     e.preventDefault();
     let msg = userInput.value.trim();
-    if(msg) sendMessage(msg);
-    userInput.value = "";
+    if(msg){
+        sendMessage(msg);
+        userInput.value = "";
+    }
 });
 
 function sendQuick(msg){
@@ -113,8 +128,61 @@ function sendQuick(msg){
     sendMessage(msg);
 }
 
-downloadBtn.addEventListener("click", ()=>{
-    let text = chatHistory.map(m=>`${m.sender.toUpperCase()}: ${m.message}`).join("\n");
+async function sendMessage(msg){
+    addMessage("user", msg);
+
+    // If name not yet set, try to detect patterns like "my name is John", "I am John", "I'm John"
+    if(!userName){
+        // match "my name is", "i am" or "i'm" followed by name
+        const nameRegex = /\b(?:my name is|i am|i'm)\s+([A-Za-z][A-Za-z'\-\s]*)/i;
+        const match = msg.match(nameRegex);
+        if(match){
+            // take first token of captured group as first name, strip punctuation
+            let nameCaptured = match[1].trim().split(/[,\.\!\?]/)[0].split(/\s+/)[0];
+            userName = nameCaptured.charAt(0).toUpperCase() + nameCaptured.slice(1).toLowerCase();
+            addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
+            userInput.placeholder = "How are you feeling today? 💛";
+            quickReplies.style.display = "flex";
+            return;
+        }
+
+        // If input is a single word, treat it as a name
+        if(msg.split(/\s+/).length === 1){
+            userName = msg.charAt(0).toUpperCase() + msg.slice(1);
+            addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
+            userInput.placeholder = "How are you feeling today? 💛";
+            quickReplies.style.display = "flex";
+            return;
+        }
+
+        // Otherwise, ask for name (keep existing flow)
+        addMessage("saathi", "Hello! I’m Saathi, your mental health companion. May I know your name?");
+        return;
+    }
+
+    try{
+        // show breathing / thinking indicator while waiting
+        showThinking();
+
+        const res = await fetch("/chat", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({message: msg})
+        });
+
+        // hide indicator as soon as we have a response (prevents cutting)
+        hideThinking();
+
+        const data = await res.json();
+        addMessage("saathi", data.reply);
+    } catch(err){
+        hideThinking();
+        addMessage("saathi", "⚠️ Error: Cannot reach server.");
+    }
+}
+
+downloadBtn.addEventListener("click", () => {
+    let text = chatHistory.map(m => `${m.sender.toUpperCase()}: ${m.message}`).join("\n");
     const blob = new Blob([text], {type:'text/plain'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

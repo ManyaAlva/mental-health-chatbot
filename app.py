@@ -1,13 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import json, os, requests
 from dotenv import load_dotenv
-import re
 
 # --- Load environment variables ---
 load_dotenv()
 PERPLEXITY_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-# --- Initialize Flask ---
 app = Flask(__name__)
 
 # --- Chat history ---
@@ -18,51 +16,14 @@ if os.path.exists(HISTORY_FILE):
 else:
     chat_history = []
 
-# --- Wellness tips ---
-wellness_tips = {
-    "relaxation": [
-        "Take 5 deep breaths and stretch your arms.",
-        "Try a 2-minute meditation break.",
-        "Write down one thing you’re grateful for."
-    ],
-    "motivation": [
-        "You are stronger than you think.",
-        "Every step forward is progress.",
-        "It’s okay to rest; you don’t have to do everything at once."
-    ]
-}
-
 # --- System prompt ---
 system_prompt = """
 You are Saathi, a friendly, caring, and empathetic mental health chatbot.
 Always respond in a supportive, concise, and non-judgmental way.
+Greet the user by their name if provided.
 """
 
-# --- Format AI reply into structured HTML ---
-def format_reply(ai_text):
-    lines = ai_text.split("\n")
-    bullets = []
-
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith(("-", "*")):
-            bullets.append(f"<li>{line[1:].strip()}</li>")
-        else:
-            sentences = re.split(r'(?<=[.!?]) +', line)
-            for sent in sentences:
-                if sent.strip():
-                    bullets.append(f"<li>{sent.strip()}</li>")
-
-    if bullets:
-        html = "<ul>\n" + "\n".join(bullets) + "\n</ul>"
-    else:
-        html = f"<p>{ai_text}</p>"
-
-    return html
-
-# --- Chatbot using Perplexity ---
+# --- Ask AI / Perplexity ---
 def ask_perplexity(user_input):
     if not PERPLEXITY_KEY:
         return "(Offline Mode) API key not set."
@@ -91,45 +52,119 @@ def ask_perplexity(user_input):
         print("Perplexity API exception:", e)
         return "(Offline Mode) Could not connect to Perplexity API."
 
-# --- Chatbot response ---
-def chatbot_response(user_input):
+# --- Format AI reply to HTML ---
+def format_reply(ai_text):
+    import re
+
+    def ensure_sentence_end(t: str) -> str:
+        t = t.rstrip()
+        if not t:
+            return t
+        if t[-1] not in ".!?…":
+            return t + "."
+        return t
+
+    # Remove citation-style markers like [1], [1][3], etc.
+    text = re.sub(r'(?:\s*\[\d+\])+', '', ai_text)
+
+    # Convert bold **text** to <strong>
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+
+    # Remove any remaining asterisks (user requested no '*' shown)
+    text = text.replace('*', '')
+
+    # Ensure reply doesn't end abruptly
+    text = ensure_sentence_end(text)
+
+    lines = text.splitlines()
+    output_parts = []
+    in_list = False
+
+    for line in lines:
+        stripped = line.strip()
+        # list item if starts with -, * or numbered like "1."
+        if re.match(r'^(-|\*)\s+', stripped) or re.match(r'^\d+\.\s+', stripped):
+            if not in_list:
+                in_list = True
+                output_parts.append('<ul>')
+            # remove leading marker and whitespace
+            item = re.sub(r'^(-|\*|\d+\.)\s+', '', stripped)
+            item = ensure_sentence_end(item)  # ensure each list item ends cleanly
+            output_parts.append(f'<li>{item}</li>')
+        else:
+            if in_list:
+                output_parts.append('</ul>')
+                in_list = False
+            if stripped:
+                sentence = ensure_sentence_end(stripped)
+                output_parts.append(f'<p>{sentence}</p>')
+
+    if in_list:
+        output_parts.append('</ul>')
+
+    html = "\n".join(output_parts) if output_parts else f"<p>{ensure_sentence_end(text.strip())}</p>"
+    return html
+
+# --- Get stored user name ---
+def get_user_name():
+    for msg in chat_history:
+        if msg.get("role") == "user" and "name" in msg:
+            return msg["name"]
+    return None
+
+# --- Store name if detected ---
+def store_name(user_input):
+    stripped = user_input.strip()
+    lower_input = stripped.lower()
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
 
-    ai_reply = ask_perplexity(user_input)
+    # If the entire input is just a greeting, ignore it
+    if lower_input in greetings:
+        return None
+
+    # Detect "my name is", "i am", "i'm" followed by a name
+    import re
+    m = re.search(r"\b(?:my name is|i am|i'm)\s+([A-Za-z][A-Za-z'\-\s]*)", stripped, re.I)
+    if m:
+        name_part = m.group(1).strip()
+        first = name_part.split()[0]
+        return first.capitalize()
+
+    # Single-word input treated as name
+    if len(stripped.split()) == 1:
+        return stripped.capitalize()
+
+    return None
+
+# --- Chatbot response ---
+def chatbot_response(user_input):
+    user_name = get_user_name()
+
+    # Step 1: If name not known, try to detect
+    if not user_name:
+        detected_name = store_name(user_input)
+        if detected_name:
+            user_name = detected_name
+            ai_reply = f"Nice to meet you, {user_name}! How are you feeling today?"
+        else:
+            ai_reply = "Hello! I’m Saathi, your mental health companion. May I know your name?"
+    else:
+        ai_reply = ask_perplexity(f"User name: {user_name}. {user_input}")
+
     ai_reply_structured = format_reply(ai_reply)
 
-    # If greeting, only show AI encouragement
-    if user_input.lower().strip() in greetings:
-        structured_reply = f"""
-        <div class="saathi-response">
-            <h3>✨ Encouragement</h3>
-            {ai_reply_structured}
-        </div>
-        """
-    else:
-        prefix = "😊 Feedback: Thanks for sharing. "
-        tips = wellness_tips['motivation'][:2]
+    # Step 2: Build final HTML
+    structured_reply = f"""
+    <div class="saathi-response">
+        {ai_reply_structured}
+    </div>
+    """
 
-        structured_reply = f"""
-        <div class="saathi-response">
-            <h3>😊 Feedback</h3>
-            <p>{prefix}</p>
-
-            <h3>📝 Tips</h3>
-            <ul>
-        """
-        for tip in tips:
-            structured_reply += f"<li>{tip}</li>"
-        structured_reply += "</ul>"
-
-        structured_reply += f"""
-            <h3>✨ Encouragement</h3>
-            {ai_reply_structured}
-        </div>
-        """
-
-    # Save conversation
-    chat_history.append({"role": "user", "content": user_input})
+    # Step 3: Save conversation with optional name
+    entry = {"role": "user", "content": user_input}
+    if user_name and not get_user_name():  # store name only once
+        entry["name"] = user_name
+    chat_history.append(entry)
     chat_history.append({"role": "assistant", "content": structured_reply})
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(chat_history, f, indent=2)
@@ -151,6 +186,5 @@ def chat():
     response = chatbot_response(user_input)
     return jsonify({"reply": response})
 
-# --- Run Flask app ---
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
