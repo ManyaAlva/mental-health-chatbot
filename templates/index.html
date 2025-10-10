@@ -27,27 +27,14 @@
             <div class="header-content">
                 <h1>Saathi</h1>
                 <p>Be kind to your mind</p>
-                <button id="open-planner-btn" title="Open Planner" style="margin-left:auto;padding:8px 12px;border-radius:8px;border:none;background:#10b981;color:#fff;cursor:pointer;">Planner</button>
+                <!-- open planner in a new tab -->
+                <button id="open-planner-btn" onclick="window.open('/planner','_blank')" title="Open Planner" style="margin-left:auto;padding:8px 12px;border-radius:8px;border:none;background:#10b981;color:#fff;cursor:pointer;">
+                    Planner
+                </button>
             </div>
         </header>
 
         <div id="chat-box" class="chat-box"></div>
-
-        <!-- Planner (hidden by default) -->
-        <div id="planner" class="planner-wrapper" style="display:none; margin-top:12px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <h3 style="margin:0;flex:1;">Planner</h3>
-                <button id="download-planner-btn" style="background:#2563eb;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;">Download Planner</button>
-            </div>
-            <form id="planner-form" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;margin-bottom:10px;">
-                <input id="plan-title" placeholder="Title" required style="flex:1;min-width:160px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-                <input id="plan-date" type="date" style="padding:8px;border-radius:8px;border:1px solid #ccc;">
-                <input id="plan-time" type="time" style="padding:8px;border-radius:8px;border:1px solid #ccc;">
-                <input id="plan-notes" placeholder="Notes (optional)" style="flex:1;min-width:160px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-                <button type="submit" style="background:#10b981;color:#fff;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">Add</button>
-            </form>
-            <div id="planner-list" class="planner-list"></div>
-        </div>
 
         <!-- Quick replies hidden until name is entered -->
         <div class="quick-replies" id="quick-replies" style="display:none;">
@@ -145,31 +132,33 @@ function sendQuick(msg){
 async function sendMessage(msg){
     addMessage("user", msg);
 
-    // If name not yet set, try to detect patterns like "my name is John", "I am John", "I'm John"
     if(!userName){
-        // match "my name is", "i am" or "i'm" followed by name
-        const nameRegex = /\b(?:my name is|i am|i'm)\s+([A-Za-z][A-Za-z'\-\s]*)/i;
+        const EMOTIONS = ["happy","sad","angry","anxious","excited","stressed","calm","lonely","relaxed","tired","bored","scared","afraid","depressed","upset","ok","okay"];
+
+        const nameRegex = /\b(?:my name is|call me|i am|i'm|im)\s+([A-Za-z][A-ZaZ'\-\s]*)/i;
         const match = msg.match(nameRegex);
         if(match){
-            // take first token of captured group as first name, strip punctuation
             let nameCaptured = match[1].trim().split(/[,\.\!\?]/)[0].split(/\s+/)[0];
-            userName = nameCaptured.charAt(0).toUpperCase() + nameCaptured.slice(1).toLowerCase();
-            addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
-            userInput.placeholder = "How are you feeling today? 💛";
-            quickReplies.style.display = "flex";
-            return;
+            if(nameCaptured.length >= 2 && !EMOTIONS.includes(nameCaptured.toLowerCase())){
+                userName = nameCaptured.charAt(0).toUpperCase() + nameCaptured.slice(1).toLowerCase();
+                addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
+                userInput.placeholder = "How are you feeling today? 💛";
+                quickReplies.style.display = "flex";
+                return;
+            }
         }
 
-        // If input is a single word, treat it as a name
         if(msg.split(/\s+/).length === 1){
-            userName = msg.charAt(0).toUpperCase() + msg.slice(1);
-            addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
-            userInput.placeholder = "How are you feeling today? 💛";
-            quickReplies.style.display = "flex";
-            return;
+            const token = msg.replace(/[^A-Za-z'\-]/g, "");
+            if(token.length >= 2 && !EMOTIONS.includes(token.toLowerCase())){
+                userName = token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+                addMessage("saathi", `Nice to meet you, ${userName}! How are you feeling today?`);
+                userInput.placeholder = "How are you feeling today? 💛";
+                quickReplies.style.display = "flex";
+                return;
+            }
         }
 
-        // Otherwise, ask for name (keep existing flow)
         addMessage("saathi", "Hello! I’m Saathi, your mental health companion. May I know your name?");
         return;
     }
@@ -204,99 +193,6 @@ downloadBtn.addEventListener("click", () => {
     a.download = "saathi_chat.txt";
     a.click();
     URL.revokeObjectURL(url);
-});
-
-// Planner UI logic
-const plannerBtn = document.getElementById("open-planner-btn");
-const plannerEl = document.getElementById("planner");
-const plannerForm = document.getElementById("planner-form");
-const plannerList = document.getElementById("planner-list");
-
-plannerBtn.addEventListener("click", () => {
-    // toggle planner
-    plannerEl.style.display = plannerEl.style.display === "none" ? "block" : "none";
-    if (plannerEl.style.display === "block") {
-        loadPlanner();
-    }
-});
-
-async function loadPlanner(){
-    plannerList.innerHTML = "<p>Loading…</p>";
-    try {
-        const res = await fetch("/planner_items");
-        const items = await res.json();
-        renderPlanner(items || []);
-    } catch (e) {
-        plannerList.innerHTML = "<p>Error loading planner.</p>";
-    }
-}
-
-function renderPlanner(items){
-    if(!items.length){
-        plannerList.innerHTML = "<p>No tasks yet.</p>";
-        return;
-    }
-    plannerList.innerHTML = "";
-    items.sort((a,b) => (a.date || "") > (b.date || "") ? 1 : -1);
-    items.forEach(it => {
-        const div = document.createElement("div");
-        div.className = "planner-item";
-        div.innerHTML = `
-            <label style="display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" ${it.completed ? "checked" : ""} data-id="${it.id}" class="planner-complete">
-                <strong style="${it.completed ? 'text-decoration:line-through;color:#6b7280':''}">${escapeHtml(it.title)}</strong>
-                <small style="margin-left:8px;color:#374151">${it.date || ""} ${it.time || ""}</small>
-            </label>
-            <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-                <div style="flex:1;color:#374151">${escapeHtml(it.notes || "")}</div>
-                <button data-id="${it.id}" class="planner-delete" style="background:#ef4444;color:#fff;border:none;padding:6px 8px;border-radius:6px;cursor:pointer;">Delete</button>
-            </div>
-        `;
-        plannerList.appendChild(div);
-    });
-
-    // attach handlers
-    document.querySelectorAll(".planner-delete").forEach(b => b.addEventListener("click", async (e) => {
-        const id = e.currentTarget.dataset.id;
-        await fetch(`/planner_items/${id}`, {method:"DELETE"});
-        loadPlanner();
-    }));
-    document.querySelectorAll(".planner-complete").forEach(cb => cb.addEventListener("change", async (e) => {
-        const id = e.currentTarget.dataset.id;
-        const completed = e.currentTarget.checked;
-        await fetch(`/planner_items/${id}`, {
-            method: "PATCH",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({completed})
-        });
-        loadPlanner();
-    }));
-}
-
-plannerForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const title = document.getElementById("plan-title").value.trim();
-    const date = document.getElementById("plan-date").value;
-    const time = document.getElementById("plan-time").value;
-    const notes = document.getElementById("plan-notes").value.trim();
-    if(!title) return;
-    try {
-        await fetch("/planner_items", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({title, date, time, notes})
-        });
-        plannerForm.reset();
-        loadPlanner();
-    } catch (err) {
-        console.error(err);
-    }
-});
-
-// Planner Download button: navigate to server endpoint to trigger file download (text format)
-document.getElementById("download-planner-btn").addEventListener("click", (e) => {
-    // download structured plain-text version
-    window.location = "/download_planner_text";
 });
 
 // simple helper to avoid XSS in small app

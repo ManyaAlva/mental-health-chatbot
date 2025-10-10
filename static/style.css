@@ -160,3 +160,135 @@ header p { margin:0; font-size:1rem; color:#555; }
 .planner-list { display:flex; flex-direction:column; gap:10px; margin-top:8px; max-height:220px; overflow:auto; }
 .planner-item { background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e6eefb; }
 .planner-item small { font-size:0.85rem; color:#64748b; }
+/* Planner — improved UI/UX */
+.planner-container {
+    max-width:900px;
+    margin:24px auto;
+    padding:20px;
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    border-radius:12px;
+    box-shadow: 0 8px 30px rgba(13, 38, 76, 0.06);
+    border: 1px solid rgba(14, 50, 94, 0.04);
+}
+
+.planner-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.planner-header h2 { margin:0; font-size:1.25rem; color:#0f172a; }
+.planner-actions { margin-left:auto; display:flex; gap:8px; align-items:center; }
+
+/* Form layout: responsive two-column for date/time on wide screens */
+.planner-form { display:flex; flex-direction:column; gap:12px; max-width:720px; }
+.planner-form .row { display:flex; gap:8px; flex-wrap:wrap; }
+.planner-form .col { flex:1; min-width:160px; display:flex; flex-direction:column; gap:6px; }
+
+.planner-form input, .planner-form textarea, .planner-form button {
+    font-size:1rem;
+    outline-offset:2px;
+}
+
+.planner-form input:focus, .planner-form textarea:focus, .planner-form button:focus {
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+    border-color: #2563eb;
+}
+
+/* Planner list and items */
+.planner-list { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+.planner-item {
+    display:flex; flex-direction:column; gap:8px;
+    padding:12px; border-radius:10px;
+    background:#ffffff; border:1px solid #e6eefb;
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+.planner-item:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(2,6,23,0.06); }
+.planner-item .meta { display:flex; align-items:center; gap:8px; }
+
+/* status and due highlighting */
+.planner-item.pending { border-left:4px solid #f59e0b; }
+.planner-item.completed { opacity:0.75; text-decoration:line-through; border-left:4px solid #10b981; }
+
+/* empty state */
+.planner-empty { color:#64748b; padding:18px; text-align:center; }
+
+/* compact buttons */
+.btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; }
+.btn.primary { background:#2563eb; color:#fff; }
+.btn.positive { background:#10b981; color:#fff; }
+.btn.negative { background:#ef4444; color:#fff; }
+
+/* Planner: calendar & filter styles */
+.planner-filters { margin-bottom:12px; }
+.filter-btn.active { background:#2563eb;color:#fff; }
+
+.planner-calendar { background: #fff; border:1px solid #e6eefb; padding:12px; border-radius:10px; box-shadow:0 6px 18px rgba(2,6,23,0.04); }
+.calendar-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; margin-top:8px; }
+.calendar-cell { min-height:64px; padding:8px; border-radius:6px; background:#f8fbff; display:flex; flex-direction:column; gap:6px; }
+.calendar-cell.header { background:transparent; font-weight:600; color:#6b7280; min-height:24px; align-items:center; justify-content:center; }
+.calendar-cell.empty { background:transparent; border:none; }
+.calendar-cell.day { cursor:pointer; }
+.calendar-cell .day-num { font-weight:600; color:#0f172a; }
+.day-tasks { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+.day-task { font-size:0.85rem; color:#2563eb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.day-more { font-size:0.8rem; color:#64748b; }
+
+/* planner-item hover / edit styles */
+.planner-item .title-area { cursor:default; }
+.planner-item .edit-btn { background:#f3f4f6;color:#0f172a;border-radius:8px;padding:6px 8px;border:1px solid #e5e7eb; }
+.planner-item .delete-btn { padding:6px 8px; }
+
+/* ensure calendar is responsive */
+@media (max-width:760px){
+    .calendar-grid { grid-template-columns: repeat(7, 1fr); font-size:0.85rem; }
+}
+
+/* responsive */
+@media (min-width:760px) {
+    .planner-form { gap:14px; }
+    .planner-form .row.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+}
+@media (max-width:759px) {
+    .planner-header { flex-direction:column; align-items:flex-start; gap:10px; }
+}
+/* Smooth fade animation for Edit/Delete buttons */
+.edit-delete-container {
+  transition: opacity 0.4s ease;
+}
+
+/* Subtle fade for completed tasks */
+.planner-item.completed {
+  opacity: 0.75;
+  background-color: #f3f4f6;
+  transition: opacity 0.4s ease, background-color 0.4s ease;
+}
+/* --- Smooth fade animation for Edit/Delete buttons --- */
+.edit-delete-container {
+  transition: opacity 0.4s ease;
+}
+
+/* --- Subtle fade for completed tasks --- */
+.planner-item.completed {
+  opacity: 0.75;
+  background-color: #f3f4f6;
+  transition: all 0.5s ease;
+  transform: translateX(0);
+}
+
+/* --- Slide + checkmark animation when marking complete --- */
+.planner-item.completed.animate-done {
+  transform: translateX(8px);
+  border-left: 4px solid #22c55e;
+  position: relative;
+}
+
+.planner-item.completed.animate-done::after {
+  content: "✅";
+  position: absolute;
+  left: -28px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  opacity: 0;
+  animation: fadeInCheck 0.5s forwards;
+}
+
+@keyframes fadeInCheck {
+  0% { opacity: 0; transform: translateY(-50%) scale(0.6); }
+  100% { opacity: 1; transform: translateY(-50%) scale(1); }
+}

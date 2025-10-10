@@ -21,9 +21,10 @@ else:
 
 # --- System prompt ---
 system_prompt = """
-You are Saathi, a friendly, caring, and empathetic mental health chatbot.
-Always respond in a supportive, concise, and non-judgmental way.
-Greet the user by their name if provided.
+You are Saathi, a friendly, caring, and empathetic mental health chatbot for students.
+Always respond in a supportive, concise, and non-judgmental way. Keep language simple and student-focused.
+Do NOT address the user by their name except once when you first meet them (use the name only in the first greeting).
+Always end with a short follow-up question to keep the conversation going.
 """
 
 # --- Ask AI / Perplexity ---
@@ -56,55 +57,79 @@ def ask_perplexity(user_input):
         return "(Offline Mode) Could not connect to Perplexity API."
 
 # --- Format AI reply to HTML ---
-def format_reply(ai_text):
-    def ensure_sentence_end(t: str) -> str:
-        t = t.rstrip()
-        if not t:
-            return t
-        if t[-1] not in ".!?…":
-            return t + "."
-        return t
+def format_reply(ai_text, max_sentences: int = 7, followup: str = None, end_conversation: bool = False):
+    """
+    Clean AI text, limit to `max_sentences`, convert simple markdown (bold)
+    and list lines to safe HTML paragraphs / lists.
+    If end_conversation is True, do not append any follow-up question.
+    """
+    import re
 
-    # Remove citation-style markers like [1], [1][3], etc.
+    if not ai_text:
+        return "<p>Sorry, I couldn't generate a reply right now.</p>"
+
+    # remove citation-style markers and convert simple markdown
     text = re.sub(r'(?:\s*\[\d+\])+', '', ai_text)
-
-    # Convert bold **text** to <strong>
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
-
-    # Remove any remaining asterisks (user requested no '*' shown)
     text = text.replace('*', '')
 
-    # Ensure reply doesn't end abruptly
-    text = ensure_sentence_end(text)
+    # split into sentences (keeps punctuation)
+    sentences = re.split(r'(?<=[\.!\?…])\s+', text.strip())
+    # filter out empty
+    sentences = [s.strip() for s in sentences if s.strip()]
 
-    lines = text.splitlines()
-    output_parts = []
+    truncated = sentences[:max_sentences]
+    truncated_text = " ".join(truncated).strip()
+
+    # Ensure we end cleanly with punctuation
+    if truncated_text and truncated_text[-1] not in ".!?…":
+        truncated_text = truncated_text + "."
+
+    # if original had more sentences, append an ellipsis to show continuation
+    if len(sentences) > max_sentences:
+        truncated_text = truncated_text.rstrip() + " …"
+
+    # ensure there is a follow-up question unless this is an end-of-conversation reply
+    has_question = bool(re.search(r'\?\s*$', truncated_text))
+    if not has_question and not end_conversation:
+        if followup:
+            truncated_text = truncated_text + " " + followup
+        else:
+            truncated_text = truncated_text + " Would you like to tell me more?"
+
+    # Convert simple lists / paragraphs into HTML
+    lines = truncated_text.splitlines()
+    out = []
     in_list = False
-
     for line in lines:
-        stripped = line.strip()
-        # list item if starts with -, * or numbered like "1."
-        if re.match(r'^(-|\*)\s+', stripped) or re.match(r'^\d+\.\s+', stripped):
+        line = line.strip()
+        if re.match(r'^(-|\d+\.)\s+', line):
             if not in_list:
                 in_list = True
-                output_parts.append('<ul>')
-            # remove leading marker and whitespace
-            item = re.sub(r'^(-|\*|\d+\.)\s+', '', stripped)
-            item = ensure_sentence_end(item)  # ensure each list item ends cleanly
-            output_parts.append(f'<li>{item}</li>')
+                out.append("<ul>")
+            item = re.sub(r'^(-|\d+\.)\s+', '', line)
+            out.append(f'<li>{item}</li>')
         else:
             if in_list:
-                output_parts.append('</ul>')
+                out.append("</ul>")
                 in_list = False
-            if stripped:
-                sentence = ensure_sentence_end(stripped)
-                output_parts.append(f'<p>{sentence}</p>')
-
+            if line:
+                out.append(f"<p>{line}</p>")
     if in_list:
-        output_parts.append('</ul>')
+        out.append("</ul>")
 
-    html = "\n".join(output_parts) if output_parts else f"<p>{ensure_sentence_end(text.strip())}</p>"
+    html = "\n".join(out) if out else f"<p>{truncated_text}</p>"
     return html
+
+INVALID_NAMES = {
+    "no","yes","ok","okay","maybe","nah","nope",
+    "i","me","my","mine","student","everyone","none",
+    # common emotion/adjective words — don't treat these as names
+    "happy","sad","angry","anxious","excited","stressed","calm","lonely",
+    "relaxed","tired","bored","scared","afraid","depressed","upset",
+    # common short replies / fillers/affirmations that should never become names
+    "yeah","yep","yup","sure","right","okey","okeydokey","kk","k","thanks","thankyou","thank","cool","nice"
+}
 
 # --- Persisted user name ---
 USER_FILE = "user.json"
@@ -115,103 +140,119 @@ if os.path.exists(USER_FILE):
             user_data = json.load(f) or {}
     except Exception:
         user_data = {}
+    # auto-clear invalid saved name
+    saved = (user_data.get("name") or "").strip().lower()
+    if saved in INVALID_NAMES:
+        try:
+            os.remove(USER_FILE)
+        except Exception:
+            pass
+        user_data = {}
 
 def set_user_name(name: str):
     global user_data
     if not name:
-        return
-    name = name.strip().capitalize()
-    user_data["name"] = name
+        return False
+    name_clean = name.strip()
+    # reject obviously invalid tokens
+    if name_clean.lower() in INVALID_NAMES or len(name_clean) < 2:
+        return False
+    name_clean = name_clean.capitalize()
+    user_data = {"name": name_clean, "greeted": False}
     try:
         with open(USER_FILE, "w", encoding="utf-8") as f:
             json.dump(user_data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print("Could not save user name:", e)
+    return True
 
 def get_user_name():
-    # Always reload from disk to ensure persistence across requests / restarts
+    # always reload to avoid stale memory
     if os.path.exists(USER_FILE):
         try:
             with open(USER_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f) or {}
-                name = data.get("name")
-                if name:
-                    return name
+                d = json.load(f) or {}
+                return d.get("name")
         except Exception:
             pass
-    # fallback: check memory-loaded user_data
-    name = user_data.get("name")
-    if name:
-        return name
-    # final fallback: scan chat history (rare)
-    for msg in chat_history:
-        if msg.get("role") == "user" and "name" in msg:
-            return msg["name"]
-    return None
+    return user_data.get("name")
 
-# --- Store name if detected ---
-def store_name(user_input):
-    stripped = user_input.strip()
-    lower_input = stripped.lower()
-    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+def set_user_greeted():
+    global user_data
+    user_data["greeted"] = True
+    try:
+        with open(USER_FILE, "w", encoding="utf-8") as f:
+            json.dump(user_data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
-    # If the entire input is just a greeting, ignore it
-    if lower_input in greetings:
-        return None
-
-    # Detect "my name is", "i am", "i'm" followed by a name
-    m = re.search(r"\b(?:my name is|i am|i'm)\s+([A-Za-z][A-Za-z'\-\s]*)", stripped, re.I)
-    if m:
-        name_part = m.group(1).strip()
-        first = name_part.split()[0]
-        return first.capitalize()
-
-    # Single-word input treated as name
-    if len(stripped.split()) == 1:
-        return stripped.capitalize()
-
-    return None
+def user_was_greeted():
+    if os.path.exists(USER_FILE):
+        try:
+            with open(USER_FILE, "r", encoding="utf-8") as f:
+                d = json.load(f) or {}
+                return bool(d.get("greeted"))
+        except Exception:
+            pass
+    return bool(user_data.get("greeted"))
 
 # --- Chatbot response ---
 def chatbot_response(user_input):
-    # always check persisted name
+    """
+    Persist name if detected. Greet by name only once; afterwards do NOT address user by name.
+    Prompt AI to produce short, student-focused replies (<=7 sentences) and end with a follow-up question.
+    """
+    # reload persisted name
     user_name = get_user_name()
 
-    # Step 1: If name not known, try to detect
+    # Try detect + persist name (first time)
     if not user_name:
-        detected_name = store_name(user_input)
-        if detected_name:
-            user_name = detected_name
-            # Persist the detected name so it's stored after the first time
-            set_user_name(user_name)
-            ai_reply = f"Nice to meet you, {user_name}! How are you feeling today?"
-        else:
-            ai_reply = "Hello! I’m Saathi, your mental health companion. May I know your name?"
+        detected = store_name(user_input)
+        if detected:
+            set_user_name(detected)
+            # greet once immediately (do not call AI for this simple greeting)
+            set_user_greeted()  # mark greeted so future replies won't use name
+            reply_text = f"Nice to meet you, {detected}! How are you feeling today?"
+            return format_reply(reply_text)
+
+    # Build AI instruction: explicitly tell AI not to use name if already greeted
+    instruction = (
+        "You are Saathi, a friendly, caring, empathetic mental health chatbot for students. "
+        "Answer supportively and concisely (limit to 7 sentences). "
+        "End with a short follow-up question to keep the conversation going. "
+    )
+    if user_was_greeted():
+        instruction += "Do NOT address the user by name in your reply."
     else:
-        # include the stored name in the prompt so assistant can greet appropriately
-        ai_reply = ask_perplexity(f"User name: {user_name}. {user_input}")
+        instruction += "You may use the user's name once to greet them, but do not use the name repeatedly."
 
-    ai_reply_structured = format_reply(ai_reply)
+    name_line = f"User name: {user_name}." if user_name and not user_was_greeted() else ""
 
-    # Save conversation (include name once if present)
-    entry = {"role": "user", "content": user_input}
-    if user_name:
-        entry["name"] = user_name
-    chat_history.append(entry)
-    chat_history.append({"role": "assistant", "content": ai_reply})  # store raw assistant text
+    final_prompt = f"{system_prompt}\n{instruction}\n{name_line}\nUser: {user_input}"
+
+    ai_text = ask_perplexity(final_prompt)
+
+    # build a contextual followup based on user's latest message
+    followup = choose_followup(user_input)
+
+    # format and enforce sentence limit, append followup if needed
+    html = format_reply(ai_text, max_sentences=7, followup=followup)
+
+    # After generating a reply, if user wasn't greeted but we included a greeting, mark greeted.
+    # Conservative approach: if user_name exists and not greeted, mark greeted so AI won't reuse it.
+    if user_name and not user_was_greeted():
+        set_user_greeted()
+
+    # save to chat history (existing logic)
     try:
+        chat_history.append({"role": "user", "content": user_input, **({"name": user_name} if user_name else {})})
+        chat_history.append({"role": "assistant", "content": ai_text})
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(chat_history, f, indent=2)
-    except Exception as e:
-        print("Could not save chat history:", e)
+            json.dump(chat_history, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
-    # Return structured HTML for frontend
-    structured_reply = f"""
-    <div class="saathi-response">
-        {ai_reply_structured}
-    </div>
-    """
-    return structured_reply
+    return html
 
 # --- Planner storage ---
 PLANNER_FILE = "planner.json"
@@ -324,6 +365,77 @@ def chat():
 
     response = chatbot_response(user_input)
     return jsonify({"reply": response})
+
+@app.route("/planner")
+def planner_page():
+    # Render a separate planner page (new template)
+    return render_template("planner.html")
+
+def store_name(user_input: str):
+    """
+    Extracts and cleans a likely user name from input text.
+    Handles formats like 'my name is X', 'I am X', "I'm X", or single-word names.
+    Rejects values in INVALID_NAMES and common filler words.
+    """
+    if not user_input:
+        return None
+
+    text = user_input.strip()
+
+    # common patterns: "my name is X", "call me X", "I'm X", "I am X"
+    patterns = [
+        r"\bmy\s+name\s+is\s+([A-Za-z][A-Za-z'\-]*)\b",
+        r"\bcall\s+me\s+([A-Za-z][A-ZaZ'\-]*)\b",
+        r"\bi\s*(?:'m|am)\s+([A-Za-z][A-Za-z'\-]*)\b"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            candidate = re.sub(r"[^A-Za-z'\-]", "", match.group(1)).strip().capitalize()
+            if candidate and candidate.lower() not in INVALID_NAMES:
+                return candidate
+
+    # single-word input -> treat as name only if alphabetic, reasonable length,
+    # not in INVALID_NAMES, and likely a real name (simple vowel check)
+    tokens = text.split()
+    if len(tokens) == 1:
+        token = re.sub(r"[^A-Za-z'\-]", "", tokens[0]).strip()
+        if token and token.isalpha() and 2 <= len(token) <= 30 and token.lower() not in INVALID_NAMES:
+            # require at least one vowel OR allow very short names (<=3) to accommodate e.g. "Li"
+            if re.search(r"[aeiou]", token, flags=re.I) or len(token) <= 3:
+                return token.capitalize()
+
+    return None
+
+def choose_followup(user_input: str):
+    """
+    Return a short student-focused follow-up question based on user_input.
+    Keep it concise and actionable.
+    """
+    if not user_input:
+        return "Would you like to tell me more or try a short grounding exercise?"
+
+    u = user_input.lower()
+
+    exams = ["exam", "exams", "test", "tests", "grade", "grades", "marks", "result", "results"]
+    stress = ["stress", "stressed", "stressing", "overwhelmed", "pressure", "deadline"]
+    anxious = ["anxious", "anxiety", "worried", "worried about"]
+    happy = ["happy", "excited", "great", "celebrate", "good marks", "good grade", "got"]
+    sleep = ["sleep", "tired", "rest", "insomnia"]
+    social = ["friend", "friends", "relationship", "peer", "classmate", "roommate"]
+
+    if any(k in u for k in exams):
+        return "Congrats — would you like tips to keep the momentum or plan next study steps?"
+    if any(k in u for k in happy):
+        return "That’s wonderful — want ideas to celebrate or channels to share this with friends?"
+    if any(k in u for k in anxious) or any(k in u for k in stress):
+        return "Would you like a short breathing exercise now or a few quick strategies to manage this stress?"
+    if any(k in u for k in sleep):
+        return "Would you like some quick sleep tips you can try tonight?"
+    if any(k in u for k in social):
+        return "Do you want help thinking through how to talk to them or what to say?"
+    # default
+    return "Would you like to tell me more, or try a short grounding exercise?"
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
