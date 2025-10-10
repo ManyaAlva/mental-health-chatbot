@@ -3,3 +3,4 @@ openai
 transformers
 torch
 nltk
+gunicorn
