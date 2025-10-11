@@ -368,3 +368,59 @@ input, textarea, select { font-size:1rem; }
 .tt-task{color:#0f172a}
 /* responsive */
 @media(max-width:760px){ .controls{flex-direction:column;align-items:stretch} .small{width:100%} }
+
+/* Planner page background (light-blue theme + planning illustration) */
+.planner-page{
+  background-color: #e9f8ff;
+  background-image: url("https://cdni.iconscout.com/illustration/premium/thumb/planning-3465570-2912101.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  min-height: 100vh;
+  padding: 24px 12px;
+}
+
+/* Keep planner content as white card for readability */
+.planner-container {
+  max-width: 920px;
+  margin: 24px auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(2,24,64,0.06);
+  border: 1px solid rgba(2,132,199,0.06); /* subtle blue border */
+}
+
+/* Time Traveler page background (light-blue photographic bg) */
+.tt-page{
+  background-color: #f0f9ff;
+  background-image: url("https://thumbs.dreamstime.com/b/time-travel-jump-time-portal-hours-time-travel-jump-time-portal-hours-high-quality-illustration-267030752.jpg");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  min-height: 100vh;
+  padding: 24px 12px;
+}
+
+/* Ensure Time Traveler card remains white */
+.tt-container, .tt-card {
+  max-width: 920px;
+  margin: 18px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 20px rgba(3,7,18,0.04);
+  border: 1px solid rgba(2,132,199,0.06);
+}
+
+/* Improve contrast for header controls on these pages */
+.planner-page .planner-header h2,
+.tt-page .tt-hero h2 {
+  color: #0369a1;
+}
+
+/* Mobile safe padding adjustments */
+@media (max-width: 760px) {
+  .planner-page, .tt-page { padding: 12px 8px; }
+  .planner-container, .tt-container { margin: 12px auto; padding: 12px; }
+}
