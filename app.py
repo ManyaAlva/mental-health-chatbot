@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import uuid
 import re
 from flask import send_file
+from datetime import datetime, timezone, date
+from pathlib import Path
 
 # --- Load environment variables ---
 load_dotenv()
@@ -351,6 +353,152 @@ def download_planner_text():
     }
     return (body, 200, headers)
 
+# --- Time Capsule storage ---
+TIME_MESSAGES_FILE = "time_messages.json"
+
+def load_time_messages():
+    p = Path(TIME_MESSAGES_FILE)
+    if p.exists():
+        try:
+            return json.loads(p.read_text(encoding="utf-8")) or []
+        except Exception:
+            return []
+    return []
+
+def save_time_messages(items):
+    try:
+        Path(TIME_MESSAGES_FILE).write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as e:
+        print("Could not save time messages:", e)
+
+# API: list scheduled messages (pending + delivered optional ?query=all)
+@app.route("/time_messages", methods=["GET"])
+def get_time_messages():
+    items = load_time_messages()
+    q = request.args.get("q", "")
+    if q == "pending":
+        items = [i for i in items if not i.get("delivered")]
+    return jsonify(items)
+
+# API: create scheduled message
+@app.route("/time_messages", methods=["POST"])
+def create_time_message():
+    data = request.get_json(silent=True) or {}
+    msg = (data.get("message") or "").strip()
+    sched = (data.get("scheduled_date") or "").strip()  # YYYY-MM-DD
+    if not msg or not sched:
+        return jsonify({"error":"message and scheduled_date required"}), 400
+    try:
+        # validate date
+        _ = datetime.fromisoformat(sched)
+    except Exception:
+        try:
+            # allow date-only YYYY-MM-DD
+            _ = datetime.fromisoformat(sched + "T00:00:00")
+        except Exception:
+            return jsonify({"error":"invalid scheduled_date, use ISO format (YYYY-MM-DD or full ISO)"}), 400
+
+    items = load_time_messages()
+    item = {
+        "id": str(uuid.uuid4()),
+        "message": msg,
+        "scheduled_date": sched,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "delivered": False,
+        "delivered_at": None
+    }
+    items.append(item)
+    save_time_messages(items)
+    return jsonify(item), 201
+
+# API: edit scheduled message
+@app.route("/time_messages/<msg_id>", methods=["PATCH"])
+def update_time_message(msg_id):
+    data = request.get_json(silent=True) or {}
+    items = load_time_messages()
+    for it in items:
+        if it.get("id") == msg_id and not it.get("delivered"):
+            if "message" in data: it["message"] = (data.get("message") or "").strip()
+            if "scheduled_date" in data:
+                it["scheduled_date"] = (data.get("scheduled_date") or "").strip()
+            save_time_messages(items)
+            return jsonify(it)
+    return jsonify({"error":"not found or already delivered"}), 404
+
+# API: delete scheduled message
+@app.route("/time_messages/<msg_id>", methods=["DELETE"])
+def delete_time_message(msg_id):
+    items = load_time_messages()
+    new = [i for i in items if i.get("id") != msg_id]
+    save_time_messages(new)
+    return jsonify({"ok": True})
+
+# Delivery logic: find due messages and mark delivered, append to chat_history.json
+def deliver_due_messages():
+    items = load_time_messages()
+    now = datetime.now(timezone.utc)
+    changed = False
+    delivered_msgs = []
+    for it in items:
+        if it.get("delivered"):
+            continue
+        # interpret scheduled_date flexibly
+        try:
+            scheduled = datetime.fromisoformat(it["scheduled_date"])
+        except Exception:
+            # date-only fallback
+            scheduled = datetime.fromisoformat(it["scheduled_date"] + "T00:00:00")
+        # compare in UTC: deliver when scheduled <= now
+        if scheduled.replace(tzinfo=timezone.utc) <= now:
+            it["delivered"] = True
+            it["delivered_at"] = now.isoformat()
+            changed = True
+            delivered_msgs.append(it)
+    if changed:
+        save_time_messages(items)
+        # append each delivered message into chat_history.json as assistant notification
+        try:
+            hist_path = Path(HISTORY_FILE)
+            hist = []
+            if hist_path.exists():
+                hist = json.loads(hist_path.read_text(encoding="utf-8")) or []
+            for m in delivered_msgs:
+                hist.append({
+                    "role": "assistant",
+                    "content": f"[Time Capsule] {m['message']}",
+                    "meta": {"time_message_id": m["id"], "delivered_at": m.get("delivered_at")}
+                })
+            hist_path.write_text(json.dumps(hist, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception as e:
+            print("Could not append delivered messages to history:", e)
+    return delivered_msgs
+
+# Expose route so Render cron or external scheduler can call it daily/minutely
+@app.route("/run_deliveries", methods=["POST","GET"])
+def run_deliveries_route():
+    delivered = deliver_due_messages()
+    return jsonify({"delivered_count": len(delivered), "delivered_ids":[d["id"] for d in delivered]})
+
+# Optional: lightweight background checker for local/dev (calls deliver_due_messages every minute)
+def start_delivery_worker(interval_seconds=60):
+    import threading, time
+    def worker():
+        while True:
+            try:
+                deliver_due_messages()
+            except Exception:
+                pass
+            time.sleep(interval_seconds)
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+
+# Start background worker only in dev mode (avoid in some production hosts)
+if __name__ == "__main__" or os.environ.get("ENABLE_TIME_WORKER") == "1":
+    # don't start the thread in Gunicorn worker processes by default on Render;
+    # use Render Cron to call /run_deliveries, or set ENABLE_TIME_WORKER=1 for testing.
+    if os.environ.get("FLASK_ENV") == "development" or os.environ.get("ENABLE_TIME_WORKER") == "1":
+        start_delivery_worker()
+
 # --- Flask routes ---
 @app.route("/")
 def home():
@@ -371,6 +519,10 @@ def planner_page():
     # Render a separate planner page (new template)
     return render_template("planner.html")
 
+@app.route("/time_traveler")
+def time_traveler_page():
+    return render_template("time_traveler.html")
+
 def store_name(user_input: str):
     """
     Extracts and cleans a likely user name from input text.
@@ -384,7 +536,7 @@ def store_name(user_input: str):
 
     # common patterns: "my name is X", "call me X", "I'm X", "I am X"
     patterns = [
-        r"\bmy\s+name\s+is\s+([A-Za-z][A-Za-z'\-]*)\b",
+        r"\bmy\s+name\s+is\s+([A-Za-z][A-ZaZ'\-]*)\b",
         r"\bcall\s+me\s+([A-Za-z][A-ZaZ'\-]*)\b",
         r"\bi\s*(?:'m|am)\s+([A-Za-z][A-Za-z'\-]*)\b"
     ]

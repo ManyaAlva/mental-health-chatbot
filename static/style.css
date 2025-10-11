@@ -339,8 +339,32 @@ input, textarea, select { font-size:1rem; }
   .calendar-grid { gap:4px; }
 }
 
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    # debug=False in production
-    app.run(host="0.0.0.0", port=port, debug=os.environ.get("FLASK_DEBUG", "0") == "1")
+/* --- Time Traveler light-blue theme additions --- */
+:root{
+  --tt-bg: #f0f9ff;
+  --tt-card: #ffffff;
+  --tt-accent: #7dd3fc;
+  --tt-primary: #0284c7;
+  --tt-muted: #475569;
+}
+
+/* Time Traveler overrides */
+.tt-container{max-width:900px;margin:18px auto;padding:16px;}
+.tt-hero{background:linear-gradient(180deg,var(--tt-bg),#ffffff);padding:18px;border-radius:12px;margin-bottom:12px;border:1px solid rgba(125,211,252,0.12);}
+.tt-hero h2{margin:0;color:var(--tt-primary)}
+.tt-card{background:var(--tt-card);border:1px solid rgba(2,132,199,0.08);padding:14px;border-radius:12px;box-shadow:0 8px 20px rgba(3,7,18,0.04);}
+.muted{color:var(--tt-muted);font-size:0.95rem}
+.controls{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.small{width:180px}
+.btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--tt-accent);color:#03354a}
+.btn.positive{background:var(--tt-primary);color:#fff}
+.btn.negative{background:#ef4444;color:#fff}
+.tt-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.tt-item{padding:12px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(2,132,199,0.06);display:flex;flex-direction:column;gap:8px}
+.tt-meta{display:flex;align-items:center;gap:8px}
+.tt-date{font-weight:600;color:var(--tt-primary)}
+.tt-status{color:#64748b;font-size:0.9rem}
+.tt-actions{margin-left:auto;display:flex;gap:8px}
+.tt-task{color:#0f172a}
+/* responsive */
+@media(max-width:760px){ .controls{flex-direction:column;align-items:stretch} .small{width:100%} }

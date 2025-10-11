@@ -47,7 +47,7 @@
         <header class="planner-header">
             <h2>Planner</h2>
             <div class="planner-actions">
-                <button id="back-to-chat-btn" class="btn" aria-label="Back to chat">◀ Back to Chat</button>
+                <button id="back-to-chat-btn" class="btn primary" aria-label="Back to chat">◀ Back to Chat</button>
                 <button id="download-planner-btn" class="btn primary" aria-label="Download planner">📥 Download</button>
                 <button id="toggle-calendar-btn" class="btn" aria-label="Toggle calendar">📅 Calendar</button>
                 <button id="close-planner-btn" class="btn negative" aria-label="Close planner">Close</button>
@@ -331,11 +331,11 @@ document.getElementById("planner-form").addEventListener("submit", async (e) => 
     }
 });
 
-document.getElementById("download-planner-btn").addEventListener("click", () => {
-    window.location = "/download_planner_text";
-});
 document.getElementById("back-to-chat-btn").addEventListener("click", () => {
     window.location.href = "/";
+});
+document.getElementById("download-planner-btn").addEventListener("click", () => {
+    window.location = "/download_planner_text";
 });
 document.getElementById("toggle-calendar-btn").addEventListener("click", () => {
     calendarEl.style.display = calendarEl.style.display === 'none' ? 'block' : 'none';

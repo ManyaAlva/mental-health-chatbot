@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Time Traveler — Saathi</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+  /* Light-blue theme for Time Traveler */
+  :root {
+    --tt-bg: #f0f9ff;
+    --tt-card: #ffffff;
+    --tt-accent: #7dd3fc; /* light-blue accent */
+    --tt-primary: #0284c7; /* deeper blue */
+    --tt-muted: #475569;
+  }
+  .tt-container{max-width:900px;margin:18px auto;padding:16px;}
+  .tt-card{background:var(--tt-card);border:1px solid rgba(2,132,199,0.08);padding:14px;border-radius:12px;box-shadow:0 8px 20px rgba(3,7,18,0.04);}
+  .tt-hero{background:linear-gradient(180deg,var(--tt-bg),#ffffff);padding:18px;border-radius:12px;margin-bottom:12px;border:1px solid rgba(125,211,252,0.12);}
+  .tt-hero h2{margin:0;color:var(--tt-primary)}
+  .muted{color:var(--tt-muted);font-size:0.95rem}
+  textarea#tt-message{width:100%;min-height:88px;padding:10px;border-radius:8px;border:1px solid #dbeafe;resize:vertical;font-size:1rem}
+  .controls{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .controls .small{width:180px}
+  .btn {padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--tt-accent);color:#03354a}
+  .btn.positive{background:var(--tt-primary);color:#fff}
+  .btn.negative{background:#ef4444;color:#fff}
+  .tt-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .tt-item{padding:12px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(2,132,199,0.06);display:flex;flex-direction:column;gap:8px}
+  .tt-meta{display:flex;align-items:center;gap:8px}
+  .tt-date{font-weight:600;color:var(--tt-primary)}
+  .tt-status{color:#64748b;font-size:0.9rem}
+  .tt-actions{margin-left:auto;display:flex;gap:8px}
+  .tt-task{color:#0f172a}
+  @media(max-width:760px){ .controls{flex-direction:column;align-items:stretch} .controls .small{width:100%} }
+  </style>
+</head>
+<body>
+  <div class="tt-container">
+    <div class="tt-hero" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <h2>⏳ Time Traveler Check‑in</h2>
+        <p class="muted">Imagine Future‑You has arrived. Write a short encouraging message and choose a date to receive it.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="tt-back-btn" class="btn" aria-label="Back to chat">◀ Back to Chat</button>
+        <button id="tt-open-planner" class="btn positive" aria-label="Open Planner">📋 Planner</button>
+      </div>
+    </div>
+
+    <div class="tt-card" id="prompt-card">
+      <div style="margin-bottom:8px;">
+        <strong>Prompt</strong>
+        <div class="muted">What advice would future you give about your current stress or goals?</div>
+      </div>
+
+      <textarea id="tt-message" placeholder="Write a message to your future self..."></textarea>
+
+      <div class="controls">
+        <input id="tt-date" type="date" class="small" aria-label="Scheduled date">
+        <button id="tt-save" class="btn positive">Schedule</button>
+        <button id="tt-sample" class="btn">Use prompt ideas</button>
+      </div>
+    </div>
+
+    <h3 style="margin-top:16px;">Scheduled Messages</h3>
+    <div id="tt-list" class="tt-list">
+      <div class="muted">Loading…</div>
+    </div>
+  </div>
+
+<script>
+/* Time Traveler client: list, edit, delete, scheduling */
+async function loadMessages(){
+  const list = document.getElementById("tt-list");
+  list.innerHTML = "<div class='muted'>Loading…</div>";
+  try {
+    const res = await fetch("/time_messages");
+    const items = await res.json();
+    renderList(items);
+  } catch (e){
+    list.innerHTML = "<div class='muted'>Error loading.</div>";
+  }
+}
+function fmtDateISOToDMY(iso){
+  try{
+    const d = new Date(iso);
+    if(isNaN(d)) return iso;
+    return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  }catch(e){return iso}
+}
+function renderList(items){
+  const list = document.getElementById("tt-list");
+  if(!items || !items.length){
+    list.innerHTML = "<div class='muted'>No scheduled messages.</div>";
+    return;
+  }
+  // sort by scheduled_date ascending
+  items.sort((a,b)=> (a.scheduled_date||"") > (b.scheduled_date||"") ? 1 : -1);
+  list.innerHTML = "";
+  items.forEach(it=>{
+    const div = document.createElement("div");
+    div.className = "tt-item";
+    div.dataset.id = it.id;
+    div.innerHTML = `
+      <div class="tt-meta">
+        <div>
+          <div class="tt-date">${fmtDateISOToDMY(it.scheduled_date)}</div>
+          <div class="tt-status">${it.delivered ? 'Delivered' : 'Pending'}</div>
+        </div>
+        <div class="tt-actions">
+          ${!it.delivered ? `<button class="edit-btn btn" data-id="${it.id}">Edit</button>
+          <button class="del-btn btn negative" data-id="${it.id}">Delete</button>` : ''}
+        </div>
+      </div>
+      <div class="tt-task">${escapeHtml(it.message)}</div>
+    `;
+    list.appendChild(div);
+  });
+
+  // attach events
+  document.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click', async (e)=>{
+    if(!confirm("Delete this scheduled message?")) return;
+    const id = e.currentTarget.dataset.id;
+    await fetch(`/time_messages/${id}`, {method:"DELETE"});
+    loadMessages();
+  }));
+  document.querySelectorAll('.edit-btn').forEach(b=>b.addEventListener('click', (e)=>{
+    const id = e.currentTarget.dataset.id;
+    startInlineEdit(id);
+  }));
+}
+
+function escapeHtml(s){ if(!s) return ""; return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Inline edit UI: replace card content with a small form */
+async function startInlineEdit(id){
+  const items = await (await fetch(`/time_messages`)).json();
+  const it = items.find(x=>x.id===id);
+  if(!it) return;
+  const container = document.querySelector(`.tt-item[data-id="${id}"]`);
+  const original = container.innerHTML;
+  container.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <textarea class="edit-message" rows="3" style="padding:8px;border-radius:8px;border:1px solid #dbeafe;">${escapeHtml(it.message)}</textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" class="edit-date small" value="${it.scheduled_date || ''}">
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn" id="cancel-edit">Cancel</button>
+          <button class="btn positive" id="save-edit">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+  container.querySelector("#cancel-edit").addEventListener("click", ()=>{ container.innerHTML = original; });
+  container.querySelector("#save-edit").addEventListener("click", async ()=>{
+    const payload = {
+      message: container.querySelector(".edit-message").value.trim(),
+      scheduled_date: container.querySelector(".edit-date").value
+    };
+    await fetch(`/time_messages/${id}`, {
+      method: "PATCH",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    loadMessages();
+  });
+}
+
+/* schedule new message */
+document.getElementById("tt-save").addEventListener("click", async ()=>{
+  const msg = document.getElementById("tt-message").value.trim();
+  const date = document.getElementById("tt-date").value;
+  if(!msg || !date){ alert("Please add message and date"); return; }
+  await fetch("/time_messages", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({message:msg, scheduled_date:date})});
+  document.getElementById("tt-message").value = "";
+  document.getElementById("tt-date").value = "";
+  loadMessages();
+});
+
+const samples = [
+  "You did the work. Be proud and remember to breathe.",
+  "This moment was hard—future you says you made it through. Keep going.",
+  "Celebrate small wins. You earned this."
+];
+document.getElementById("tt-sample").addEventListener("click", ()=> {
+  document.getElementById("tt-message").value = samples[Math.floor(Math.random()*samples.length)];
+});
+
+/* Navigation buttons */
+document.getElementById("tt-back-btn").addEventListener("click", () => {
+  window.location.href = "/";
+});
+document.getElementById("tt-open-planner").addEventListener("click", () => {
+  window.location.href = "/planner";
+});
+
+/* initial load */
+loadMessages();
+</script>
+</body>
+</html>

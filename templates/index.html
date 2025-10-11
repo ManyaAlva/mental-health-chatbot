@@ -27,10 +27,12 @@
             <div class="header-content">
                 <h1>Saathi</h1>
                 <p>Be kind to your mind</p>
-                <!-- open planner in a new tab -->
-                <button id="open-planner-btn" onclick="window.open('/planner','_blank')" title="Open Planner" style="margin-left:auto;padding:8px 12px;border-radius:8px;border:none;background:#10b981;color:#fff;cursor:pointer;">
-                    Planner
-                </button>
+                <div class="header-actions" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                    <!-- existing action buttons (keep) -->
+                    <button id="open-planner-btn" class="btn primary" aria-label="Open Planner">📒 Planner</button>
+                    <!-- new Time Traveler button for chatbot -->
+                    <button id="time-traveler-btn-chat" class="btn" aria-label="Time Traveler">⏳ Time Traveler</button>
+                </div>
             </div>
         </header>
 
@@ -193,6 +195,14 @@ downloadBtn.addEventListener("click", () => {
     a.download = "saathi_chat.txt";
     a.click();
     URL.revokeObjectURL(url);
+});
+
+document.getElementById("time-traveler-btn-chat").addEventListener("click", () => {
+    window.location.href = "/time_traveler";
+});
+
+document.getElementById("open-planner-btn").addEventListener("click", () => {
+    window.location.href = "/planner";
 });
 
 // simple helper to avoid XSS in small app
