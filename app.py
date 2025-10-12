@@ -150,8 +150,6 @@ if os.path.exists(USER_FILE):
         except Exception:
             pass
         user_data = {}
-# ensure awaiting_name key exists
-user_data.setdefault("awaiting_name", False)
 
 def set_user_name(name: str):
     global user_data
@@ -162,7 +160,7 @@ def set_user_name(name: str):
     if name_clean.lower() in INVALID_NAMES or len(name_clean) < 2:
         return False
     name_clean = name_clean.capitalize()
-    user_data = {"name": name_clean, "greeted": False, "awaiting_name": False}
+    user_data = {"name": name_clean, "greeted": False}
     try:
         with open(USER_FILE, "w", encoding="utf-8") as f:
             json.dump(user_data, f, ensure_ascii=False, indent=2)
@@ -184,7 +182,6 @@ def get_user_name():
 def set_user_greeted():
     global user_data
     user_data["greeted"] = True
-    user_data["awaiting_name"] = False
     try:
         with open(USER_FILE, "w", encoding="utf-8") as f:
             json.dump(user_data, f, ensure_ascii=False, indent=2)
@@ -201,54 +198,24 @@ def user_was_greeted():
             pass
     return bool(user_data.get("greeted"))
 
-# new helpers for awaiting-name state
-def set_awaiting_name(flag: bool):
-    global user_data
-    user_data["awaiting_name"] = bool(flag)
-    try:
-        with open(USER_FILE, "w", encoding="utf-8") as f:
-            json.dump(user_data, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
-
-def is_awaiting_name():
-    if os.path.exists(USER_FILE):
-        try:
-            with open(USER_FILE, "r", encoding="utf-8") as f:
-                d = json.load(f) or {}
-                return bool(d.get("awaiting_name"))
-        except Exception:
-            pass
-    return bool(user_data.get("awaiting_name", False))
-
 # --- Chatbot response ---
 def chatbot_response(user_input):
     """
-    Persist name only when the bot previously asked for it. Greet by name only once; afterwards do NOT address user by name.
+    Persist name if detected. Greet by name only once; afterwards do NOT address user by name.
     Prompt AI to produce short, student-focused replies (<=7 sentences) and end with a follow-up question.
     """
     # reload persisted name
     user_name = get_user_name()
-    awaiting = is_awaiting_name()
 
-    # If no name yet:
+    # Try detect + persist name (first time)
     if not user_name:
-        if awaiting:
-            # accept this input as the user's name (only if asked)
-            detected = store_name(user_input)
-            if detected:
-                set_user_name(detected)
-                set_user_greeted()  # mark greeted so future replies won't use name
-                set_awaiting_name(False)
-                reply_text = f"Nice to meet you, {detected}! How are you feeling today?"
-                return format_reply(reply_text, max_sentences=3)
-            else:
-                # invalid name; ask again (keep awaiting_name = True)
-                return format_reply("I didn't catch that as a name. Could you tell me your name? (e.g., Aisha)", max_sentences=2)
-        else:
-            # we haven't asked for name yet — ask now and set awaiting flag
-            set_awaiting_name(True)
-            return format_reply("Hello! I’m Saathi, your mental health companion. May I know your name?", max_sentences=2)
+        detected = store_name(user_input)
+        if detected:
+            set_user_name(detected)
+            # greet once immediately (do not call AI for this simple greeting)
+            set_user_greeted()  # mark greeted so future replies won't use name
+            reply_text = f"Nice to meet you, {detected}! How are you feeling today?"
+            return format_reply(reply_text)
 
     # Build AI instruction: explicitly tell AI not to use name if already greeted
     instruction = (
@@ -274,6 +241,7 @@ def chatbot_response(user_input):
     html = format_reply(ai_text, max_sentences=7, followup=followup)
 
     # After generating a reply, if user wasn't greeted but we included a greeting, mark greeted.
+    # Conservative approach: if user_name exists and not greeted, mark greeted so AI won't reuse it.
     if user_name and not user_was_greeted():
         set_user_greeted()
 
